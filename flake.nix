@@ -20,8 +20,8 @@
             pkg-config
 
             # Wayland dependencies
-            # wayland
-            # wayland-protocols
+            wayland
+            wayland-protocols
             libxkbcommon
 
             # X11 dependencies (fallback)
@@ -42,7 +42,7 @@
           # Use zsh and set up environment
           shellHook = ''
             export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
-              # pkgs.wayland
+              pkgs.wayland
               pkgs.libxkbcommon
               pkgs.libGL
               pkgs.xorg.libX11
