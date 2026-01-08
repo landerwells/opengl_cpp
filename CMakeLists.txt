@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 project(opengl_cpp)
 set(CMAKE_CXX_STANDARD 23)
 
-set(GLFW_VERSION 3.3.9)
+set(GLFW_VERSION 3.4)
 set(GLM_VERSION 1.0.1)
 
 # Export compile commands for LSP
