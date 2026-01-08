@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(opengl_cpp LANGUAGES CXX)
+project(opengl_cpp)
 set(CMAKE_CXX_STANDARD 23)
 
 set(GLFW_VERSION 3.3.9)
