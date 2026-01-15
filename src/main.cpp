@@ -1,5 +1,7 @@
 #include "camera.h"
 #include "shader.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -111,14 +113,17 @@ int main() {
                                glm::vec3(1.5f, 2.0f, -2.5f),
                                glm::vec3(1.5f, 0.2f, -1.5f),
                                glm::vec3(-1.3f, 1.0f, -1.5f)};
+
+  VertexBuffer vb(vertices, sizeof(vertices));
+
   unsigned int VBO, VAO;
   glGenVertexArrays(1, &VAO);
-  glGenBuffers(1, &VBO);
+  // glGenBuffers(1, &VBO);
+  // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
   glBindVertexArray(VAO);
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
   // position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -197,7 +202,6 @@ int main() {
   // optional: de-allocate all resources once they've outlived their purpose:
   // ------------------------------------------------------------------------
   glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
 
   // glfw: terminate, clearing all previously allocated GLFW resources.
   // ------------------------------------------------------------------

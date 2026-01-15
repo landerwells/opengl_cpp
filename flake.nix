@@ -18,6 +18,7 @@
             cmake
             gcc
             pkg-config
+            clang-tools
 
             # Wayland dependencies
             wayland
