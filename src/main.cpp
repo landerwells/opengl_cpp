@@ -1,4 +1,4 @@
-#include "IndexBuffer.h"
+#include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "camera.h"
 #include "shader.h"
@@ -34,7 +34,8 @@ bool firstMouse = true;
 float deltaTime = 0.0f;  // time between current frame and last frame
 float lastFrame = 0.0f;
 
-int main() {
+int main()
+{
   // glfw: initialize and configure
   // ------------------------------
   glfwInit();
@@ -49,7 +50,8 @@ int main() {
   // glfw window creation
   // --------------------
   GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-  if (window == NULL) {
+  if (window == NULL)
+  {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
     return -1;
@@ -64,7 +66,8 @@ int main() {
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
@@ -117,19 +120,13 @@ int main() {
 
   VertexBuffer vb(vertices, sizeof(vertices));
 
-  unsigned int VAO;
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
-
-  // position attribute
-  // index, size, type, normalized, stride, offset
-  // This is telling us how to interpret the values in the VertexBuffer
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-
-  // texture coord attribute
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
+  VertexArray va;
+  VertexBufferLayout layout;
+  // Define position attribute (3 floats)
+  layout.push<float>(3);
+  // Define texture coordinate attribute (2 floats)
+  layout.push<float>(2);
+  va.addBuffer(vb, layout);
 
   // load and create a texture
   // -------------------------
@@ -145,7 +142,8 @@ int main() {
 
   // render loop
   // -----------
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window))
+  {
     // per-frame time logic
     // --------------------
     float currentFrame = static_cast<float>(glfwGetTime());
@@ -180,8 +178,9 @@ int main() {
     ourShader.setMat4("view", view);
 
     // render boxes
-    glBindVertexArray(VAO);
-    for (unsigned int i = 0; i < 10; i++) {
+    va.bind();
+    for (unsigned int i = 0; i < 10; i++)
+    {
       // calculate the model matrix for each object and pass it to shader before drawing
       glm::mat4 model = glm::mat4(1.0f);  // make sure to initialize matrix to identity matrix first
       model = glm::translate(model, cubePositions[i]);
@@ -198,10 +197,6 @@ int main() {
     glfwPollEvents();
   }
 
-  // optional: de-allocate all resources once they've outlived their purpose:
-  // ------------------------------------------------------------------------
-  glDeleteVertexArrays(1, &VAO);
-
   // glfw: terminate, clearing all previously allocated GLFW resources.
   // ------------------------------------------------------------------
   glfwTerminate();
@@ -211,7 +206,8 @@ int main() {
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react
 // accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window)
+{
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
@@ -227,7 +223,8 @@ void processInput(GLFWwindow* window) {
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
   // make sure the viewport matches the new window dimensions; note that width and
   // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
@@ -235,11 +232,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
   float xpos = static_cast<float>(xposIn);
   float ypos = static_cast<float>(yposIn);
 
-  if (firstMouse) {
+  if (firstMouse)
+  {
     lastX = xpos;
     lastY = ypos;
     firstMouse = false;
@@ -256,11 +255,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
   camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-GLuint create_texture(const std::string& path, bool has_alpha) {
+GLuint create_texture(const std::string& path, bool has_alpha)
+{
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -275,7 +276,8 @@ GLuint create_texture(const std::string& path, bool has_alpha) {
 
   unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
-  if (!data) {
+  if (!data)
+  {
     std::cerr << "Failed to load texture: " << path << "\n";
     return 0;  // 0 = invalid OpenGL texture
   }

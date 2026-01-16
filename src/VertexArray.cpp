@@ -1,1 +1,45 @@
+#include "VertexArray.h"
+#include "VertexBufferLayout.h"
 
+VertexArray::VertexArray()
+{
+  glGenVertexArrays(1, &m_rendererID);
+}
+
+VertexArray::~VertexArray()
+{
+  glDeleteVertexArrays(1, &m_rendererID);
+}
+
+void VertexArray::bind() const
+{
+  glBindVertexArray(m_rendererID);
+}
+
+void VertexArray::unbind() const
+{
+  glBindVertexArray(0);
+}
+
+void VertexArray::addBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
+{
+  bind();
+  vb.bind();
+  const auto& elements = layout.getElements();
+  unsigned int offset = 0;
+  for (int i = 0; i < elements.size(); i++)
+  {
+    const auto& element = elements[i];
+    glEnableVertexAttribArray(i);
+
+    // This is telling us how to interpret the values in the VertexBuffer
+    // index, size, type, normalized, stride, offset
+    glVertexAttribPointer(i,
+                          element.count,
+                          element.type,
+                          element.normalized,
+                          layout.getStride(),
+                          (const void*)offset);
+    offset += element.count * VertexBufferElement::getSizeOfType(element.type);
+  }
+}
