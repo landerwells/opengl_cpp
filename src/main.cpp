@@ -1,16 +1,16 @@
+#include "Shader.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "camera.h"
-#include "shader.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include <iostream>
 
@@ -76,9 +76,7 @@ int main()
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
 
-  // build and compile our shader program
-  // ------------------------------------
-  Shader ourShader("res/textures/vert.glsl", "res/textures/frag.glsl");
+  Shader program("res/shaders/basic.glsl");
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -131,14 +129,11 @@ int main()
   // load and create a texture
   // -------------------------
   GLuint texture1 = create_texture("res/textures/container.jpg", false);
-
   GLuint texture2 = create_texture("res/textures/awesomeface.png", true);
 
-  // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-  // -------------------------------------------------------------------------------------------
-  ourShader.use();
-  ourShader.setInt("texture1", 0);
-  ourShader.setInt("texture2", 1);
+  program.bind();
+  program.setInt("texture1", 0);
+  program.setInt("texture2", 1);
 
   // render loop
   // -----------
@@ -165,17 +160,16 @@ int main()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
-    // activate shader
-    ourShader.use();
+    program.bind();
 
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    ourShader.setMat4("projection", projection);
+    program.setMat4("projection", projection);
 
     // camera/view transformation
     glm::mat4 view = camera.GetViewMatrix();
-    ourShader.setMat4("view", view);
+    program.setMat4("view", view);
 
     // render boxes
     va.bind();
@@ -186,7 +180,7 @@ int main()
       model = glm::translate(model, cubePositions[i]);
       float angle = 20.0f * i;
       model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-      ourShader.setMat4("model", model);
+      program.setMat4("model", model);
 
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
