@@ -41,6 +41,15 @@ FetchContent_Declare(
 )
 FetchContent_Populate(glad)
 
+# Fetch stb
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(stb)
+
+
 # Include GLAD
 include_directories(${glad_SOURCE_DIR}/include)
 
@@ -87,6 +96,11 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${stb_SOURCE_DIR}
+)
 
 # Link libraries - order matters for some linkers
 target_link_libraries(${PROJECT_NAME} 

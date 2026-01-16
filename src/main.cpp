@@ -1,7 +1,7 @@
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
 #include "camera.h"
 #include "shader.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -73,7 +73,7 @@ int main() {
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
 
-  // build and compile our shader zprogram
+  // build and compile our shader program
   // ------------------------------------
   Shader ourShader("res/textures/vert.glsl", "res/textures/frag.glsl");
 
@@ -102,6 +102,7 @@ int main() {
                       -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
                       0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
                       -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
+
   // world space positions of our cubes
   glm::vec3 cubePositions[] = {glm::vec3(0.0f, 0.0f, 0.0f),
                                glm::vec3(2.0f, 5.0f, -15.0f),
@@ -116,18 +117,16 @@ int main() {
 
   VertexBuffer vb(vertices, sizeof(vertices));
 
-  unsigned int VBO, VAO;
+  unsigned int VAO;
   glGenVertexArrays(1, &VAO);
-  // glGenBuffers(1, &VBO);
-  // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
   glBindVertexArray(VAO);
 
-
   // position attribute
+  // index, size, type, normalized, stride, offset
+  // This is telling us how to interpret the values in the VertexBuffer
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+
   // texture coord attribute
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
