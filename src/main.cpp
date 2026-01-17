@@ -2,6 +2,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "camera.h"
+#include "Texture.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -9,16 +10,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
-GLuint create_texture(const std::string& path, bool has_alpha);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -76,7 +73,6 @@ int main()
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
 
-  Shader program("res/shaders/basic.glsl");
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -113,7 +109,7 @@ int main()
                                glm::vec3(-1.7f, 3.0f, -7.5f),
                                glm::vec3(1.3f, -2.0f, -2.5f),
                                glm::vec3(1.5f, 2.0f, -2.5f),
-                               glm::vec3(1.5f, 0.2f, -1.5f),
+                                glm::vec3(1.5f, 0.2f, -1.5f),
                                glm::vec3(-1.3f, 1.0f, -1.5f)};
 
   VertexBuffer vb(vertices, sizeof(vertices));
@@ -126,21 +122,22 @@ int main()
   layout.push<float>(2);
   va.addBuffer(vb, layout);
 
-  // load and create a texture
-  // -------------------------
-  GLuint texture1 = create_texture("res/textures/container.jpg", false);
-  GLuint texture2 = create_texture("res/textures/awesomeface.png", true);
-
+  // Shader
+  Shader program("res/shaders/basic.glsl");
   program.bind();
+
+  Texture texture1("res/textures/container.jpg", false);
+  texture1.bind(0);
   program.setInt("texture1", 0);
+
+  Texture texture2("res/textures/awesomeface.png", true);
+  texture2.bind(1);
   program.setInt("texture2", 1);
 
   // render loop
   // -----------
   while (!glfwWindowShouldClose(window))
   {
-    // per-frame time logic
-    // --------------------
     float currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -154,11 +151,8 @@ int main()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // bind textures on corresponding texture units
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
+    texture1.bind(0);
+    texture2.bind(1);
 
     program.bind();
 
@@ -192,7 +186,7 @@ int main()
   }
 
   // glfw: terminate, clearing all previously allocated GLFW resources.
-  // ------------------------------------------------------------------
+  // ------------------------------------------------------------------renderer
   glfwTerminate();
   return 0;
 }
@@ -254,34 +248,3 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
   camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-GLuint create_texture(const std::string& path, bool has_alpha)
-{
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  int width, height, nrChannels;
-  stbi_set_flip_vertically_on_load(true);
-
-  unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-
-  if (!data)
-  {
-    std::cerr << "Failed to load texture: " << path << "\n";
-    return 0;  // 0 = invalid OpenGL texture
-  }
-
-  GLenum format = has_alpha ? GL_RGBA : GL_RGB;
-
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  stbi_image_free(data);
-
-  return texture;
-}
