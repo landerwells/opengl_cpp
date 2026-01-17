@@ -35,12 +35,8 @@
             # OpenGL
             libGL
             libGLU
-
-            # Shell
-            zsh
           ];
 
-          # Use zsh and set up environment
           shellHook = ''
             export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
               pkgs.wayland
@@ -51,9 +47,6 @@
 
             echo "OpenGL C++ development environment loaded"
             echo "Wayland and X11 support enabled"
-
-            export SHELL=${pkgs.zsh}/bin/zsh
-            exec ${pkgs.zsh}/bin/zsh
           '';
         };
       }

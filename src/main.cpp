@@ -1,8 +1,9 @@
+#include "Renderer.h"
 #include "Shader.h"
+#include "Texture.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "camera.h"
-#include "Texture.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -73,7 +74,6 @@ int main()
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
 
-
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float vertices[] = {-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
@@ -109,7 +109,7 @@ int main()
                                glm::vec3(-1.7f, 3.0f, -7.5f),
                                glm::vec3(1.3f, -2.0f, -2.5f),
                                glm::vec3(1.5f, 2.0f, -2.5f),
-                                glm::vec3(1.5f, 0.2f, -1.5f),
+                               glm::vec3(1.5f, 0.2f, -1.5f),
                                glm::vec3(-1.3f, 1.0f, -1.5f)};
 
   VertexBuffer vb(vertices, sizeof(vertices));
@@ -134,8 +134,8 @@ int main()
   texture2.bind(1);
   program.setInt("texture2", 1);
 
-  // render loop
-  // -----------
+  Renderer renderer;
+
   while (!glfwWindowShouldClose(window))
   {
     float currentFrame = static_cast<float>(glfwGetTime());
@@ -146,10 +146,7 @@ int main()
     // -----
     processInput(window);
 
-    // render
-    // ------
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    renderer.clear();
 
     texture1.bind(0);
     texture2.bind(1);
@@ -176,7 +173,7 @@ int main()
       model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
       program.setMat4("model", model);
 
-      glDrawArrays(GL_TRIANGLES, 0, 36);
+      renderer.draw(va, program, 36);
     }
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -185,8 +182,6 @@ int main()
     glfwPollEvents();
   }
 
-  // glfw: terminate, clearing all previously allocated GLFW resources.
-  // ------------------------------------------------------------------renderer
   glfwTerminate();
   return 0;
 }
@@ -207,10 +202,11 @@ void processInput(GLFWwindow* window)
     camera.ProcessKeyboard(LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     camera.ProcessKeyboard(RIGHT, deltaTime);
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    camera.ProcessKeyboard(UP, deltaTime);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
+// This function should be abstracted to a window class
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
   // make sure the viewport matches the new window dimensions; note that width and
@@ -247,4 +243,3 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
   camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
-
