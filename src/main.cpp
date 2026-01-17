@@ -70,10 +70,6 @@ int main()
     return -1;
   }
 
-  // configure global opengl state
-  // -----------------------------
-  glEnable(GL_DEPTH_TEST);
-
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float vertices[] = {-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
@@ -135,6 +131,7 @@ int main()
   program.setInt("texture2", 1);
 
   Renderer renderer;
+  renderer.enableDepthTest();
 
   while (!glfwWindowShouldClose(window))
   {
@@ -206,11 +203,8 @@ void processInput(GLFWwindow* window)
     camera.ProcessKeyboard(UP, deltaTime);
 }
 
-// This function should be abstracted to a window class
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-  // make sure the viewport matches the new window dimensions; note that width and
-  // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
 }
 
