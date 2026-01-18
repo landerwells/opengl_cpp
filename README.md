@@ -8,5 +8,9 @@ cmake --build build
 
 ```
 
+I have been thinking about where I want to take this project, and I believe I
+will try to practice some more advanced lighting techniques like ray tracing.
+That will be a solid enough project for me.
+
 Features that I want to add
 - Hot reloading shaders
