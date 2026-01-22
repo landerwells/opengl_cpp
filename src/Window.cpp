@@ -1,17 +1,19 @@
 #include "Window.h"
 
-#include <iostream>
 #include "GLFW/glfw3.h"
-#include "camera.h"
+#include <glad/glad.h>
+
+#include <stdexcept>
 
 Window::Window(int width, int height, const std::string& title)
-    : m_width(width),
-      m_height(height),
-      m_lastX(width / 2.0),
-      m_lastY(height / 2.0),
-      m_firstMouse(true)
+    : m_window(nullptr), m_width(width), m_height(height)
 {
-  glfwInit();
+  // Initialize GLFW
+  if (!glfwInit())
+  {
+    throw std::runtime_error("Failed to initialize GLFW");
+  }
+
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -20,80 +22,43 @@ Window::Window(int width, int height, const std::string& title)
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-  m_window = glfwCreateWindow(m_width, m_height, title.c_str(), NULL, NULL);
+  m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
   if (!m_window)
   {
-    std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
+    throw std::runtime_error("Failed to create GLFW window");
   }
 
   glfwMakeContextCurrent(m_window);
-  glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-  // glfwSetCursorPosCallback(m_window, mouse_callback);
-  // glfwSetScrollCallback(m_window, scroll_callback);
 
-  glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  {
+    glfwTerminate();
+    throw std::runtime_error("Failed to initialize GLAD");
+  }
+
+  glfwSetWindowUserPointer(m_window, this);
+  glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 }
 
 Window::~Window()
 {
+  if (m_window)
+  {
+    glfwDestroyWindow(m_window);
+  }
   glfwTerminate();
 }
 
 bool Window::shouldClose()
 {
-  glfwWindowShouldClose(m_window);
+  return glfwWindowShouldClose(m_window);
 }
 
-void Window::processInput(Camera& camera)
-{
-  if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(m_window, true);
-
-  if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
-    camera.ProcessKeyboard(FORWARD, m_deltaTime);
-  if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
-    camera.ProcessKeyboard(BACKWARD, m_deltaTime);
-  if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
-    camera.ProcessKeyboard(LEFT, m_deltaTime);
-  if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
-    camera.ProcessKeyboard(RIGHT, m_deltaTime);
-  if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    camera.ProcessKeyboard(UP, m_deltaTime);
-}
-
-// This one is fine
 void Window::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
   glViewport(0, 0, width, height);
 }
-
-// These two should speak to the inputhandler?
-// void Window::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-// {
-//   float xpos = static_cast<float>(xposIn);
-//   float ypos = static_cast<float>(yposIn);
-//
-//   if (m_firstMouse)
-//   {
-//     m_lastX = xpos;
-//     m_lastY = ypos;
-//     m_firstMouse = false;
-//   }
-//
-//   float xoffset = xpos - lastX;
-//   float yoffset = lastY - ypos;  // reversed since y-coordinates go from bottom to top
-//
-//   lastX = xpos;
-//   lastY = ypos;
-//
-//   camera.ProcessMouseMovement(xoffset, yoffset);
-// }
-
-// void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-// {
-//   camera.ProcessMouseScroll(static_cast<float>(yoffset));
-// }
 
 void Window::swapBuffers()
 {
@@ -104,3 +69,16 @@ void Window::pollEvents()
 {
   glfwPollEvents();
 }
+
+void Window::captureMouse(bool capture)
+{
+  if (capture)
+  {
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  }
+  else
+  {
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
+}
+

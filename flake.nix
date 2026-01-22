@@ -23,6 +23,7 @@
             # Wayland dependencies
             wayland
             wayland-protocols
+            wayland-scanner
             libxkbcommon
 
             # X11 dependencies (fallback)
