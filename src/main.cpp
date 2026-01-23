@@ -82,11 +82,11 @@ int main()
 
   Texture texture1("res/textures/container.jpg", false);
   texture1.bind(0);
-  program.setInt("texture1", 0);
+  program.setUniform("texture1", 0);
 
   Texture texture2("res/textures/awesomeface.png", true);
   texture2.bind(1);
-  program.setInt("texture2", 1);
+  program.setUniform("texture2", 1);
 
   Renderer renderer;
   renderer.enableDepthTest();
@@ -121,11 +121,11 @@ int main()
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    program.setMat4("projection", projection);
+    program.setUniform("projection", projection);
 
     // camera/view transformation
     glm::mat4 view = camera.GetViewMatrix();
-    program.setMat4("view", view);
+    program.setUniform("view", view);
 
     // render boxes
     va.bind();
@@ -136,7 +136,7 @@ int main()
       model = glm::translate(model, cubePositions[i]);
       float angle = 20.0f * i;
       model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-      program.setMat4("model", model);
+      program.setUniform("model", model);
 
       renderer.draw(va, program, 36);
     }

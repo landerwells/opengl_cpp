@@ -29,7 +29,7 @@ PlayerController::PlayerController(const glm::vec3& position, Camera* camera)
 
 void PlayerController::update(float deltaTime)
 {
-  // Only want to process a mouse event if there actually is one though
+  // TODO: We only want to 
   processMouseLook();
   processMovement(deltaTime);
   
