@@ -96,12 +96,10 @@ int main()
 
   while (!window.shouldClose())
   {
-    // TODO Abstract this into window or input
+    // TODO Abstract this into Time
     float currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-
-    Input::update();
 
     // Process input
     if (Input::isKeyPressed(GLFW_KEY_ESCAPE))
@@ -110,6 +108,8 @@ int main()
     }
 
     player.update(deltaTime);
+
+    Input::update();
 
     renderer.clear();
 

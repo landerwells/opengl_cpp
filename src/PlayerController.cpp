@@ -4,8 +4,6 @@
 
 #include <GLFW/glfw3.h>
 
-// #include <algorithm>
-
 PlayerController::PlayerController(const glm::vec3& position, Camera* camera)
     : m_camera(camera),
       m_position(position),

@@ -19,6 +19,7 @@ class Input
   static bool isKeyReleased(int key);
 
   // Mouse input
+  // static bool m_mouseMoved;
   static bool isMouseButtonPressed(int button);
   static glm::vec2 getMousePosition();
   static glm::vec2 getMouseDelta();
