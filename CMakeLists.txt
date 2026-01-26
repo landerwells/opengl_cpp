@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 project(opengl_cpp)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -11,7 +12,7 @@ set(GLM_VERSION 1.0.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Configure GLFW options
-option(GLFW_BUILD_DOCS ON)
+option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 
@@ -25,6 +26,14 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(glfw)
+
+# Fetch ImGui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(imgui)
 
 # Fetch GLM
 FetchContent_Declare(
@@ -51,9 +60,29 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(stb)
 
-
 # Include GLAD
 include_directories(${glad_SOURCE_DIR}/include)
+
+## ~ BUILD IMGUI AS A LIBRARY ~
+add_library(imgui STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+
+target_link_libraries(imgui PUBLIC
+    glfw
+    ${OPENGL_LIBRARIES}
+)
 
 ## ~ COMPILER SETTINGS ~
 # Set compiler flags based on compiler
@@ -93,7 +122,6 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
 ## ~ BUILD PROJECTS ~
-
 # Build your OpenGL/GLFW ray marcher with audio support
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
@@ -102,11 +130,14 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${stb_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
 )
 
 # Link libraries - order matters for some linkers
 target_link_libraries(${PROJECT_NAME} 
     glfw 
     glm
+    imgui
     ${GLAD_LIBRARIES}
 )

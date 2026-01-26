@@ -1,0 +1,25 @@
+** OpenGL Game Engine/Renderer
+*** Goals
+For this project I want to get a good grasp on graphics programming. I also want
+to write a lot of C++ code. I am hoping to make a sort of isometric pixel art
+game.
+
+*** Build commands
+
+#+begin_src bash
+cmake -B build
+
+cmake --build build
+
+./build/opengl_cpp
+#+end_src
+
+
+*** Features
+- Portals
+- Gold in falling particle simulation?
+  
+
+*** Work on next
+- [ ] Isometric set up
+

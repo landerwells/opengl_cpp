@@ -10,12 +10,17 @@
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+const char* glsl_version = "#version 330";
 
 int main()
 {
@@ -91,6 +96,26 @@ int main()
   Renderer renderer;
   renderer.enableDepthTest();
 
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+  // ImGui::StyleColorsLight();
+
+  ImGui_ImplGlfw_InitForOpenGL(window.getWindow(), true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
+
+  // Our state
+  bool show_demo_window = true;
+  bool show_another_window = false;
+  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
   float deltaTime = 0.0f;
   float lastFrame = 0.0f;
 
@@ -100,6 +125,11 @@ int main()
     float currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
+
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     // Process input
     if (Input::isKeyPressed(GLFW_KEY_ESCAPE))
@@ -141,10 +171,46 @@ int main()
       renderer.draw(va, program, 36);
     }
 
+    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named
+    // window.
+    {
+      static float f = 0.0f;
+      static int counter = 0;
+
+      ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+
+      ImGui::Text(
+          "This is some useful text.");  // Display some text (you can use a format strings too)
+      ImGui::Checkbox("Demo Window",
+                      &show_demo_window);  // Edit bools storing our window open/close state
+      ImGui::Checkbox("Another Window", &show_another_window);
+
+      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
+      ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats representing a color
+
+      if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return true
+                                    // when edited/activated)
+        counter++;
+      ImGui::SameLine();
+      ImGui::Text("counter = %d", counter);
+
+      ImGui::Text(
+          "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+      ImGui::End();
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     window.swapBuffers();
     window.pollEvents();
   }
   // TODO Error handling
+
+  // Cleanup
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
   return 0;
 }
