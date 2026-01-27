@@ -1,0 +1,7 @@
+#ifndef ISOMETRICCAMERA_H
+#define ISOMETRICCAMERA_H
+
+
+
+
+#endif // ISOMETRICCAMERA_H
