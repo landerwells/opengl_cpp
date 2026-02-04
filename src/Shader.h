@@ -1,8 +1,10 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <string>
 #include <glm/glm.hpp>
+
+#include <string>
+#include <unordered_map>
 
 struct ShaderProgramSource
 {
@@ -12,7 +14,7 @@ struct ShaderProgramSource
 
 class Shader
 {
-public:
+  public:
   Shader(const std::string& filepath);
   ~Shader();
 
@@ -33,11 +35,12 @@ public:
   void setUniform(const std::string& name, const glm::mat3& mat) const;
   void setUniform(const std::string& name, const glm::mat4& mat) const;
 
-private:
+  private:
+  mutable std::unordered_map<std::string, int> m_uniformLocationCache;
   unsigned int compileShader(unsigned int type, const std::string& source);
   ShaderProgramSource parseShader(const std::string& filepath);
   unsigned int createShader(const std::string& vertexShaderSource,
-                           const std::string& fragmentShaderSource);
+                            const std::string& fragmentShaderSource);
   unsigned int getUniformLocation(const std::string& name);
 
   std::string m_filepath;

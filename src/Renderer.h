@@ -10,6 +10,7 @@ class Renderer
 {
   public:
   Renderer() : m_clearColor(0.2f, 0.3f, 0.3f, 1.0f) {}
+  Renderer(float x, float y, float z) : m_clearColor(x, y, z, 1.0f) {}
   void draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
   void draw(const VertexArray& va, const Shader& shader, int vertexCount) const;
   void clear() const;

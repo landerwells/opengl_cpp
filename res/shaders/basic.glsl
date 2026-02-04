@@ -10,8 +10,8 @@ uniform mat4 projection;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0f);
-    TexCoord = vec2(aTexCoord.x, aTexCoord.y);
+  gl_Position = projection * view * model * vec4(aPos, 1.0f);
+  TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 }
 
 #shader fragment
@@ -22,8 +22,13 @@ in vec2 TexCoord;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
 
+uniform vec3 objectColor;
+uniform vec3 lightColor;
+
 void main()
 {
-    FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
+  float ambientStrength = 0.1;
+  vec3 ambient = ambientStrength * lightColor;
+  vec3 temp = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2).rgb;
+  FragColor = vec4(ambient * temp, 1.0);
 }
-

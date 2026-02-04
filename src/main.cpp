@@ -7,6 +7,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "Window.h"
+#include "glm/fwd.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -17,14 +18,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 
 const char* glsl_version = "#version 330";
 
+const glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 int main()
 {
-  Window window(SCR_WIDTH, SCR_HEIGHT, "OpenGL - Terrain Demo");
+  Window window(SCR_WIDTH, SCR_HEIGHT, "OpenGL");
   window.captureMouse(true);
 
   Input::init(window.getWindow());
@@ -81,8 +84,13 @@ int main()
   layout.push<float>(2);
   va.addBuffer(vb, layout);
 
+  VertexArray lightVAO;
+  lightVAO.addBuffer(vb, layout);
+
   // Shader
   Shader program("res/shaders/basic.glsl");
+  Shader light("res/shaders/lighting.glsl");
+  Shader sdf("res/shaders/sdf.glsl");
   program.bind();
 
   Texture texture1("res/textures/container.jpg", false);
@@ -93,7 +101,7 @@ int main()
   texture2.bind(1);
   program.setUniform("texture2", 1);
 
-  Renderer renderer;
+  Renderer renderer(0.1f, 0.1f, 0.1f);
   renderer.enableDepthTest();
 
   // Setup Dear ImGui context
@@ -147,6 +155,8 @@ int main()
     texture2.bind(1);
 
     program.bind();
+    light.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
+    light.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(
@@ -159,10 +169,12 @@ int main()
 
     // render boxes
     va.bind();
+
+    glm::mat4 model = glm::mat4(1.0f);  // make sure to initialize matrix to identity matrix first
     for (unsigned int i = 0; i < 10; i++)
     {
       // calculate the model matrix for each object and pass it to shader before drawing
-      glm::mat4 model = glm::mat4(1.0f);  // make sure to initialize matrix to identity matrix first
+      model = glm::mat4(1.0f);  // make sure to initialize matrix to identity matrix first
       model = glm::translate(model, cubePositions[i]);
       float angle = 20.0f * i;
       model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
@@ -171,13 +183,47 @@ int main()
       renderer.draw(va, program, 36);
     }
 
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named
-    // window.
+    light.bind();
+    light.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
+    light.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
+    light.setUniform("projection", projection);
+    light.setUniform("view", view);
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, lightPos);
+    model = glm::scale(model, glm::vec3(0.2f));
+    light.setUniform("model", model);
+    lightVAO.bind();
+    renderer.draw(lightVAO, light, 36);
+
+    glm::vec3 sdfPos(-1.2f, 1.0f, 2.0f);
+    float sdfRadius = 1.0f;  // Sphere radius
+    sdf.bind();
+    sdf.setUniform("objectColor", 0.0f, 0.0f, 1.0);
+    sdf.setUniform("projection", projection);
+    sdf.setUniform("view", view);
+    // Create bounding box slightly larger than the sphere
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, sdfPos);
+    model = glm::scale(model, glm::vec3(sdfRadius * 2.0f));  // Bounding box size
+    sdf.setUniform("model", model);
+    // Pass SDF-specific uniforms
+    float time = glfwGetTime();
+    sdf.setUniform("time", time);
+    sdf.setUniform("cameraPos", camera.Position);
+    sdf.setUniform("sphereCenter", sdfPos);
+    sdf.setUniform("sphereRadius", sdfRadius);
+
+    // Bind the cube VAO (this is the bounding box)
+    lightVAO.bind();  // Using cube geometry as bounding box
+
+    // Draw the bounding box (raymarching happens in fragment shader)
+    renderer.draw(lightVAO, sdf, 36);
+
     {
       static float f = 0.0f;
       static int counter = 0;
 
-      ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+      ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into
 
       ImGui::Text(
           "This is some useful text.");  // Display some text (you can use a format strings too)
@@ -185,11 +231,11 @@ int main()
                       &show_demo_window);  // Edit bools storing our window open/close state
       ImGui::Checkbox("Another Window", &show_another_window);
 
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats representing a color
+      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f
+      ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats
 
-      if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return true
-                                    // when edited/activated)
+      if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return
+                                    // true when edited/activated)
         counter++;
       ImGui::SameLine();
       ImGui::Text("counter = %d", counter);
