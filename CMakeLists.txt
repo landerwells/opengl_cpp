@@ -17,48 +17,27 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -U_FORTIFY_SOURCE")
 # Release flags  
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
-set(GLFW_VERSION 3.4)
-set(GLM_VERSION 1.0.1)
-
 # Export compile commands for LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Configure GLFW options
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
 
 # Enable testing
 enable_testing()
 
-## ~ FETCH DEPENDENCIES ~
+## ~ FIND DEPENDENCIES (provided by Nix) ~
+find_package(PkgConfig REQUIRED)
+
+# Find GLFW
+find_package(glfw3 3.4 REQUIRED)
+
+# Find GLM
+find_package(glm REQUIRED)
+
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+
+# GLAD - still need to fetch as it's generated code
 include(FetchContent)
 
-# Fetch GLFW
-FetchContent_Declare(
-    glfw
-    URL https://github.com/glfw/glfw/archive/refs/tags/${GLFW_VERSION}.tar.gz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(glfw)
-
-# Fetch ImGui
-FetchContent_Declare(
-    imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(imgui)
-
-# Fetch GLM
-FetchContent_Declare(
-    glm
-    URL https://github.com/g-truc/glm/archive/refs/tags/${GLM_VERSION}.tar.gz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(glm)
-
-# Fetch GLAD
 FetchContent_Declare(
     glad
     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
@@ -66,14 +45,15 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_Populate(glad)
+include_directories(${glad_SOURCE_DIR}/include)
 
-# Fetch stb
+# Fetch ImGui (not in nixpkgs in usable form)
 FetchContent_Declare(
-    stb
-    GIT_REPOSITORY https://github.com/nothings/stb.git
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG master
 )
-FetchContent_MakeAvailable(stb)
+FetchContent_MakeAvailable(imgui)
 
 # Fetch Google Test
 FetchContent_Declare(
@@ -81,15 +61,23 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG v1.14.0
 )
-# For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
-
-# Include Google Test module for easier test discovery
 include(GoogleTest)
 
-# Include GLAD
-include_directories(${glad_SOURCE_DIR}/include)
+# STB is header-only, include from Nix
+if(DEFINED ENV{STB_INCLUDE_PATH})
+    include_directories($ENV{STB_INCLUDE_PATH})
+else()
+    # Fallback: fetch if not provided by Nix
+    FetchContent_Declare(
+        stb
+        GIT_REPOSITORY https://github.com/nothings/stb.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(stb)
+    include_directories(${stb_SOURCE_DIR})
+endif()
 
 ## ~ BUILD IMGUI AS A LIBRARY ~
 add_library(imgui STATIC
@@ -109,25 +97,20 @@ target_include_directories(imgui PUBLIC
 
 target_link_libraries(imgui PUBLIC
     glfw
-    ${OPENGL_LIBRARIES}
+    OpenGL::GL
 )
 
 ## ~ COMPILER SETTINGS ~
-# Set compiler flags based on compiler
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") # Check if using GCC
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++ -static-libgcc")
-    # -Wall -Wextra -Wpedantic
     if(NOT WIN32)
         set(GLAD_LIBRARIES dl)
     endif()
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") # Check if using Clang
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 ## ~ BUILD FILES ~
-# Set which project you would like to build
 set(B_TARGET "src")
 
 # Set source files
@@ -150,26 +133,24 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
 ## ~ BUILD PROJECTS ~
-# Build your OpenGL/GLFW ray marcher with audio support
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        ${stb_SOURCE_DIR}
         ${imgui_SOURCE_DIR}
         ${imgui_SOURCE_DIR}/backends
 )
 
-# Link libraries - order matters for some linkers
+# Link libraries
 target_link_libraries(${PROJECT_NAME} 
     glfw 
-    glm
+    glm::glm
     imgui
+    OpenGL::GL
     ${GLAD_LIBRARIES}
 )
 
 ## ~ TESTS ~
-# Add the tests subdirectory
 add_subdirectory(tests)
