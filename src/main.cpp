@@ -4,10 +4,10 @@
 #include "Renderer.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Transform.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "Window.h"
-#include "glm/fwd.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "glm/fwd.hpp"
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
@@ -30,6 +31,7 @@ int main()
   Window window(SCR_WIDTH, SCR_HEIGHT, "OpenGL");
   window.captureMouse(true);
 
+  Transform t;
   Input::init(window.getWindow());
 
   Camera camera(glm::vec3(0.0f, 2.0f, 5.0f));

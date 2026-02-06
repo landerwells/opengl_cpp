@@ -5,6 +5,18 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Set default build type to Debug if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
+# Debug flags
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -U_FORTIFY_SOURCE")
+
+# Release flags  
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+
 set(GLFW_VERSION 3.4)
 set(GLM_VERSION 1.0.1)
 
@@ -15,6 +27,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
+
+# Enable testing
+enable_testing()
 
 ## ~ FETCH DEPENDENCIES ~
 include(FetchContent)
@@ -59,6 +74,19 @@ FetchContent_Declare(
     GIT_TAG master
 )
 FetchContent_MakeAvailable(stb)
+
+# Fetch Google Test
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Include Google Test module for easier test discovery
+include(GoogleTest)
 
 # Include GLAD
 include_directories(${glad_SOURCE_DIR}/include)
@@ -141,3 +169,7 @@ target_link_libraries(${PROJECT_NAME}
     imgui
     ${GLAD_LIBRARIES}
 )
+
+## ~ TESTS ~
+# Add the tests subdirectory
+add_subdirectory(tests)

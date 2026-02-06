@@ -24,6 +24,7 @@ uniform vec3 sphereCenter;
 uniform float sphereRadius;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float time;
 
 float sdSphere(vec3 p, vec3 center, float radius)
 {
@@ -62,7 +63,8 @@ void main()
             break;
         }
         
-        if (t > 20.0)
+        // This should probably be the range of the camera in the first place
+        if (t > 100.0)
             break;
             
         t += d;
