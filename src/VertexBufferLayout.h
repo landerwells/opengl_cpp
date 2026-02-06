@@ -1,5 +1,5 @@
-#ifndef VERTEXBUFFERLAYOUT_H
-#define VERTEXBUFFERLAYOUT_H
+#pragma once
+
 #include <glad/glad.h>
 #include <cassert>
 #include <vector>
@@ -9,7 +9,7 @@ struct VertexBufferElement
   unsigned int type;
   unsigned int count;
   unsigned char normalized;
-  
+
   static unsigned int getSizeOfType(unsigned int type)
   {
     switch (type)
@@ -26,16 +26,16 @@ struct VertexBufferElement
 
 class VertexBufferLayout
 {
-public:
+  public:
   VertexBufferLayout() : m_stride(0) {}
-  
+
   template <typename T>
   void push(unsigned int count);
-  
+
   inline const std::vector<VertexBufferElement> getElements() const { return m_elements; }
   inline unsigned int getStride() const { return m_stride; }
-  
-private:
+
+  private:
   std::vector<VertexBufferElement> m_elements;
   unsigned int m_stride;
 };
@@ -61,5 +61,3 @@ inline void VertexBufferLayout::push<unsigned int>(unsigned int count)
   m_elements.push_back({GL_UNSIGNED_INT, count, GL_FALSE});
   m_stride += VertexBufferElement::getSizeOfType(GL_UNSIGNED_INT) * count;
 }
-
-#endif

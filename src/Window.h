@@ -1,5 +1,4 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#pragma once
 
 #include <GLFW/glfw3.h>
 
@@ -29,5 +28,3 @@ class Window
   float m_deltaTime = 0.0f;  // time between current frame and last frame
   float m_lastFrame = 0.0f;
 };
-
-#endif

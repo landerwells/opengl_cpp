@@ -1,7 +1,7 @@
-#ifndef VERTEXBUFFER_H
-#define VERTEXBUFFER_H
+#pragma once
 
-class VertexBuffer {
+class VertexBuffer
+{
   public:
   VertexBuffer(const void* data, unsigned int size);
   ~VertexBuffer();
@@ -12,5 +12,3 @@ class VertexBuffer {
   private:
   unsigned int m_rendererID;
 };
-
-#endif

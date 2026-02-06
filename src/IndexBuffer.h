@@ -1,7 +1,7 @@
-#ifndef INDEXBUFFER_H
-#define INDEXBUFFER_H
+#pragma once
 
-class IndexBuffer {
+class IndexBuffer
+{
   public:
   IndexBuffer(const void* data, unsigned int size);
   ~IndexBuffer();
@@ -15,5 +15,3 @@ class IndexBuffer {
   unsigned int m_rendererID;
   unsigned int m_count;
 };
-
-#endif

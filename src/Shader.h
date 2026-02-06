@@ -1,5 +1,4 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -46,5 +45,3 @@ class Shader
   std::string m_filepath;
   unsigned int m_rendererID;
 };
-
-#endif

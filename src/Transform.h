@@ -1,5 +1,4 @@
-#ifndef TRANSFORM_H_
-#define TRANSFORM_H_
+#pragma once
 
 #include "glm/fwd.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -28,5 +27,3 @@ class Transform
   glm::quat m_rotation;
   glm::vec3 m_scale;
 };
-
-#endif  // TRANSFORM_H_

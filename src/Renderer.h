@@ -1,5 +1,4 @@
-#ifndef REDNERER_H
-#define RENDERER_H
+#pragma once
 
 #include "IndexBuffer.h"
 #include "Shader.h"
@@ -32,5 +31,3 @@ class Renderer
   private:
   glm::vec4 m_clearColor;
 };
-
-#endif
