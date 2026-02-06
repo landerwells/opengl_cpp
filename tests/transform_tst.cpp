@@ -1,4 +1,4 @@
-#include "Transform.h"
+#include "transform.h"
 
 #include <gtest/gtest.h>
 #include <glm/glm.hpp>

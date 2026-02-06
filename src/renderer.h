@@ -1,8 +1,9 @@
 #pragma once
 
-#include "IndexBuffer.h"
-#include "Shader.h"
-#include "VertexArray.h"
+#include "index_buffer.h"
+#include "shader.h"
+#include "vertex_array.h"
+
 #include "glm/fwd.hpp"
 
 class Renderer

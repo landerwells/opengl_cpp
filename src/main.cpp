@@ -1,13 +1,13 @@
-#include "Camera.h"
-#include "Input.h"
-#include "PlayerController.h"
-#include "Renderer.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "Transform.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "Window.h"
+#include "camera.h"
+#include "input.h"
+#include "player_controller.h"
+#include "renderer.h"
+#include "shader.h"
+#include "texture.h"
+#include "transform.h"
+#include "vertex_array.h"
+#include "vertex_buffer.h"
+#include "window.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>

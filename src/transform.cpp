@@ -1,4 +1,4 @@
-#include "Transform.h"
+#include "transform.h"
 
 Transform::Transform()
     : m_translation({0.0, 0.0, 0.0}), m_rotation({1.0, 0.0, 0.0, 0.0}), m_scale(1.0)

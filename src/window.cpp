@@ -1,7 +1,7 @@
-#include "Window.h"
+#include "window.h"
 
-#include "GLFW/glfw3.h"
 #include <glad/glad.h>
+#include "GLFW/glfw3.h"
 
 #include <stdexcept>
 
@@ -81,4 +81,3 @@ void Window::captureMouse(bool capture)
     glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   }
 }
-

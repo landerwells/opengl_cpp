@@ -1,5 +1,5 @@
-#include "Renderer.h"
-#include "VertexBufferLayout.h"
+#include "renderer.h"
+#include "vertex_buffer_layout.h"
 
 void Renderer::clear() const
 {

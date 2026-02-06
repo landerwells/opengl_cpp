@@ -45,7 +45,6 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_Populate(glad)
-include_directories(${glad_SOURCE_DIR}/include)
 
 # Fetch ImGui (not in nixpkgs in usable form)
 FetchContent_Declare(
@@ -65,18 +64,21 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
-# STB is header-only, include from Nix
-if(DEFINED ENV{STB_INCLUDE_PATH})
-    include_directories($ENV{STB_INCLUDE_PATH})
+# STB - try to find it via pkg-config first, otherwise fetch
+pkg_check_modules(STB stb)
+if(STB_FOUND)
+    message(STATUS "Found STB via pkg-config: ${STB_INCLUDE_DIRS}")
+    set(STB_INCLUDE_DIR ${STB_INCLUDE_DIRS})
 else()
     # Fallback: fetch if not provided by Nix
+    message(STATUS "STB not found via pkg-config, fetching...")
     FetchContent_Declare(
         stb
         GIT_REPOSITORY https://github.com/nothings/stb.git
         GIT_TAG master
     )
     FetchContent_MakeAvailable(stb)
-    include_directories(${stb_SOURCE_DIR})
+    set(STB_INCLUDE_DIR ${stb_SOURCE_DIR})
 endif()
 
 ## ~ BUILD IMGUI AS A LIBRARY ~
@@ -141,6 +143,8 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${imgui_SOURCE_DIR}
         ${imgui_SOURCE_DIR}/backends
+        ${glad_SOURCE_DIR}/include
+        ${STB_INCLUDE_DIR}
 )
 
 # Link libraries

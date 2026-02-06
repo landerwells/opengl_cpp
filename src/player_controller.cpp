@@ -1,6 +1,6 @@
-#include "PlayerController.h"
-#include "Input.h"
-#include "Camera.h"
+#include "player_controller.h"
+#include "camera.h"
+#include "input.h"
 
 #include <GLFW/glfw3.h>
 
@@ -27,10 +27,10 @@ PlayerController::PlayerController(const glm::vec3& position, Camera* camera)
 
 void PlayerController::update(float deltaTime)
 {
-  // TODO: We only want to 
+  // TODO: We only want to
   processMouseLook();
   processMovement(deltaTime);
-  
+
   if (m_noclipMode)
   {
     // In noclip mode, allow free vertical movement
@@ -50,7 +50,7 @@ void PlayerController::update(float deltaTime)
     applyGravity(deltaTime);
     resolveCollision();
   }
-  
+
   // Update camera position
   if (m_camera)
   {
@@ -60,10 +60,11 @@ void PlayerController::update(float deltaTime)
 
 void PlayerController::processMovement(float deltaTime)
 {
-  if (!m_camera) return;
-  
+  if (!m_camera)
+    return;
+
   glm::vec3 movement(0.0f);
-  
+
   // WASD movement
   if (Input::isKeyPressed(GLFW_KEY_W))
   {
@@ -81,14 +82,14 @@ void PlayerController::processMovement(float deltaTime)
   {
     movement += m_camera->Right;
   }
-  
+
   // In physics mode, flatten movement to XZ plane (don't fly when looking up/down)
   // In noclip mode, allow full 3D movement
   if (!m_noclipMode)
   {
     movement.y = 0.0f;
   }
-  
+
   // Normalize and apply speed
   if (glm::length(movement) > 0.0f)
   {
@@ -99,11 +100,12 @@ void PlayerController::processMovement(float deltaTime)
 
 void PlayerController::processMouseLook()
 {
-  if (!m_camera) return;
-  
+  if (!m_camera)
+    return;
+
   glm::vec2 mouseDelta = Input::getMouseDelta();
-  m_camera->ProcessMouseMovement(mouseDelta.x * m_mouseSensitivity, 
-                                  mouseDelta.y * m_mouseSensitivity);
+  m_camera->ProcessMouseMovement(mouseDelta.x * m_mouseSensitivity,
+                                 mouseDelta.y * m_mouseSensitivity);
 }
 
 void PlayerController::processJump()
@@ -122,7 +124,7 @@ void PlayerController::applyGravity(float deltaTime)
   {
     m_velocity.y -= m_gravity * deltaTime;
   }
-  
+
   m_position += m_velocity * deltaTime;
 }
 

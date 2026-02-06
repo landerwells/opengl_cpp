@@ -70,12 +70,30 @@
               pkgs.xorg.libX11
               pkgs.glfw
             ]}:$LD_LIBRARY_PATH
+            
+            # Add pkg-config path for STB
+            export PKG_CONFIG_PATH="${pkgs.stb}/lib/pkgconfig:''${PKG_CONFIG_PATH:-}"
+            
             echo "OpenGL C++ development environment loaded (Linux)"
             echo "Wayland and X11 support enabled"
+            echo ""
+            echo "To set up LSP support:"
+            echo "  1. Run: cmake -B build"
+            echo "  2. Run: ln -sf build/compile_commands.json ."
+            echo "  3. Restart your editor"
           '' else ''
             # macOS doesn't need LD_LIBRARY_PATH
+            
+            # Add pkg-config path for STB
+            export PKG_CONFIG_PATH="${pkgs.stb}/lib/pkgconfig:''${PKG_CONFIG_PATH:-}"
+            
             echo "OpenGL C++ development environment loaded (macOS)"
             echo "Using native macOS frameworks"
+            echo ""
+            echo "To set up LSP support:"
+            echo "  1. Run: cmake -B build"
+            echo "  2. Run: ln -sf build/compile_commands.json ."
+            echo "  3. Restart your editor"
           '';
         };
         
