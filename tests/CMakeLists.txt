@@ -6,7 +6,7 @@ file(GLOB_RECURSE TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 # Collect source files from main project that need to be tested
 # Add your implementation files here (not main.cpp)
 set(PROJECT_TEST_SOURCES
-    ${CMAKE_SOURCE_DIR}/src/transform.cpp
+    # ${CMAKE_SOURCE_DIR}/src/transform.cpp
     # Add other .cpp files you want to test here
     # ${CMAKE_SOURCE_DIR}/src/OtherClass.cpp
 )

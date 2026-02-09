@@ -1,19 +1,18 @@
 #include "camera.h"
+#include "component/transform.h"
+#include "coordinator.h"
 #include "input.h"
 #include "player_controller.h"
 #include "renderer.h"
 #include "shader.h"
+#include "system/camera_system.h"
 #include "texture.h"
-#include "transform.h"
 #include "vertex_array.h"
 #include "vertex_buffer.h"
 #include "window.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -26,6 +25,9 @@ const char* glsl_version = "#version 330";
 
 const glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
+// Global coordinator definition (declared extern in ecs_constants.h)
+Coordinator g_coordinator;
+
 int main()
 {
   Window window(SCR_WIDTH, SCR_HEIGHT, "OpenGL");
@@ -34,12 +36,14 @@ int main()
   Transform t;
   Input::init(window.getWindow());
 
-  Camera camera(glm::vec3(0.0f, 2.0f, 5.0f));
+  // Camera camera(glm::vec3(0.0f, 2.0f, 5.0f));
 
-  PlayerController player(glm::vec3(0.0f, 2.0f, 5.0f), &camera);
-  player.setMoveSpeed(5.0f);
-  player.setGroundLevel(0.0f);
+  // PlayerController player(glm::vec3(0.0f, 2.0f, 5.0f), &camera);
+  // player.setMoveSpeed(5.0f);
+  // player.setGroundLevel(0.0f);
 
+  // Could likely abstract this away into a shape file that I could specify what kind
+  // of shape that I want to spawn.
   float vertices[] = {-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
                       0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
                       -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
@@ -78,6 +82,17 @@ int main()
 
   VertexBuffer vb(vertices, sizeof(vertices));
 
+  // Register ECS components
+  g_coordinator.RegisterComponent<Transform>();
+  g_coordinator.RegisterComponent<Camera>();
+
+  // Register ECS systems
+  auto camera_system = g_coordinator.registerSystem<CameraControlSystem>();
+  Signature cameraSig;
+  cameraSig.set(g_coordinator.GetComponentType<Transform>());
+  cameraSig.set(g_coordinator.GetComponentType<Camera>());
+  g_coordinator.SetSystemSignature<CameraControlSystem>(cameraSig);
+
   VertexArray va;
   VertexBufferLayout layout;
   // Define position attribute (3 floats)
@@ -106,26 +121,6 @@ int main()
   Renderer renderer(0.1f, 0.1f, 0.1f);
   renderer.enableDepthTest();
 
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-
-  // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
-  // ImGui::StyleColorsLight();
-
-  ImGui_ImplGlfw_InitForOpenGL(window.getWindow(), true);
-  ImGui_ImplOpenGL3_Init(glsl_version);
-
-  // Our state
-  bool show_demo_window = true;
-  bool show_another_window = false;
-  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
   float deltaTime = 0.0f;
   float lastFrame = 0.0f;
 
@@ -135,11 +130,6 @@ int main()
     float currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 
     // Process input
     if (Input::isKeyPressed(GLFW_KEY_ESCAPE))
@@ -160,6 +150,8 @@ int main()
     light.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
     light.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 
+    // This should all be handled by the camera system
+    // What should the camera component even have?
     // pass projection matrix to shader (note that in this case it could change every frame)
     glm::mat4 projection = glm::perspective(
         glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -221,44 +213,10 @@ int main()
     // Draw the bounding box (raymarching happens in fragment shader)
     renderer.draw(lightVAO, sdf, 36);
 
-    {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into
-
-      ImGui::Text(
-          "This is some useful text.");  // Display some text (you can use a format strings too)
-      ImGui::Checkbox("Demo Window",
-                      &show_demo_window);  // Edit bools storing our window open/close state
-      ImGui::Checkbox("Another Window", &show_another_window);
-
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f
-      ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats
-
-      if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return
-                                    // true when edited/activated)
-        counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
-      ImGui::Text(
-          "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-      ImGui::End();
-    }
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
     window.swapBuffers();
     window.pollEvents();
   }
   // TODO Error handling
-
-  // Cleanup
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
 
   return 0;
 }
