@@ -14,7 +14,8 @@ class Coordinator
   Coordinator()
       : m_componentManager{std::make_unique<ComponentManager>()},
         m_entityManager{std::make_unique<EntityManager>()},
-        m_systemManager{std::make_unique<SystemManager>()}
+        m_systemManager{std::make_unique<SystemManager>()},
+        m_eventManager{std::make_unique<EventManager>()}
   {
   }
 
@@ -86,6 +87,7 @@ class Coordinator
   // Event methods
   void AddEventListener(EventId eventId, std::function<void(Event&)> const& listener)
   {
+    // Having troubles right here
     m_eventManager->AddListener(eventId, listener);
   }
 

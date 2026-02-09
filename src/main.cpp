@@ -1,8 +1,7 @@
-#include "camera.h"
+#include "component/camera.h"
 #include "component/transform.h"
 #include "coordinator.h"
 #include "input.h"
-#include "player_controller.h"
 #include "renderer.h"
 #include "shader.h"
 #include "system/camera_system.h"
@@ -33,14 +32,7 @@ int main()
   Window window(SCR_WIDTH, SCR_HEIGHT, "OpenGL");
   window.captureMouse(true);
 
-  Transform t;
   Input::init(window.getWindow());
-
-  // Camera camera(glm::vec3(0.0f, 2.0f, 5.0f));
-
-  // PlayerController player(glm::vec3(0.0f, 2.0f, 5.0f), &camera);
-  // player.setMoveSpeed(5.0f);
-  // player.setGroundLevel(0.0f);
 
   // Could likely abstract this away into a shape file that I could specify what kind
   // of shape that I want to spawn.
@@ -93,6 +85,21 @@ int main()
   cameraSig.set(g_coordinator.GetComponentType<Camera>());
   g_coordinator.SetSystemSignature<CameraControlSystem>(cameraSig);
 
+  // Create camera entity
+  Entity cameraEntity = g_coordinator.createEntity();
+  Transform cameraTransform{};
+  cameraTransform.position = glm::vec3(0.0f, 2.0f, 5.0f);
+  g_coordinator.AddComponent(cameraEntity, cameraTransform);
+
+  Camera cameraComponent{};
+  cameraComponent.fov = 45.0f;
+  cameraComponent.nearPlane = 0.1f;
+  cameraComponent.farPlane = 100.0f;
+  g_coordinator.AddComponent(cameraEntity, cameraComponent);
+
+  // Initialize camera system
+  camera_system->Init();
+
   VertexArray va;
   VertexBufferLayout layout;
   // Define position attribute (3 floats)
@@ -137,7 +144,21 @@ int main()
       glfwSetWindowShouldClose(window.getWindow(), true);
     }
 
-    player.update(deltaTime);
+    // Send input events to ECS
+    std::bitset<8> inputButtons;
+    inputButtons[static_cast<size_t>(InputButtons::W)] = Input::isKeyPressed(GLFW_KEY_W);
+    inputButtons[static_cast<size_t>(InputButtons::A)] = Input::isKeyPressed(GLFW_KEY_A);
+    inputButtons[static_cast<size_t>(InputButtons::S)] = Input::isKeyPressed(GLFW_KEY_S);
+    inputButtons[static_cast<size_t>(InputButtons::D)] = Input::isKeyPressed(GLFW_KEY_D);
+    inputButtons[static_cast<size_t>(InputButtons::Q)] = Input::isKeyPressed(GLFW_KEY_Q);
+    inputButtons[static_cast<size_t>(InputButtons::E)] = Input::isKeyPressed(GLFW_KEY_E);
+
+    Event inputEvent(Events::Window::INPUT);
+    inputEvent.SetParam(Events::Window::Input::INPUT, inputButtons);
+    g_coordinator.SendEvent(inputEvent);
+
+    // Update ECS systems
+    camera_system->Update(deltaTime);
 
     Input::update();
 
@@ -150,15 +171,21 @@ int main()
     light.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
     light.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 
-    // This should all be handled by the camera system
-    // What should the camera component even have?
-    // pass projection matrix to shader (note that in this case it could change every frame)
-    glm::mat4 projection = glm::perspective(
-        glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    // Get camera data from ECS
+    auto& cameraTransform = g_coordinator.GetComponent<Transform>(cameraEntity);
+    auto& camera = g_coordinator.GetComponent<Camera>(cameraEntity);
+
+    // Calculate projection matrix from camera component
+    glm::mat4 projection = glm::perspective(glm::radians(camera.fov),
+                                            (float)SCR_WIDTH / (float)SCR_HEIGHT,
+                                            camera.nearPlane,
+                                            camera.farPlane);
     program.setUniform("projection", projection);
 
-    // camera/view transformation
-    glm::mat4 view = camera.GetViewMatrix();
+    // Calculate view matrix from camera transform
+    glm::mat4 view = glm::lookAt(cameraTransform.position,
+                                 cameraTransform.position + cameraTransform.forward(),
+                                 cameraTransform.up());
     program.setUniform("view", view);
 
     // render boxes
@@ -203,7 +230,7 @@ int main()
     // Pass SDF-specific uniforms
     float time = glfwGetTime();
     sdf.setUniform("time", time);
-    sdf.setUniform("cameraPos", camera.Position);
+    sdf.setUniform("cameraPos", cameraTransform.position);
     sdf.setUniform("sphereCenter", sdfPos);
     sdf.setUniform("sphereRadius", sdfRadius);
 

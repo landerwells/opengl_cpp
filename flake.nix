@@ -16,6 +16,7 @@
           cmake
           pkg-config
           clang-tools
+          gdb
           
           # OpenGL/Graphics libraries
           glfw

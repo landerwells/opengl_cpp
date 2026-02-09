@@ -96,7 +96,7 @@ void Input::mouseCallback(GLFWwindow* window, double xpos, double ypos)
 
   // ACCUMULATE the delta instead of overwriting
   float deltaX = s_mousePos.x - s_lastMousePos.x;
-  float deltaY = s_lastMousePos.y - s_mousePos.y;  // Reversed: y-coordinates go from bottom to top
+  float deltaY = s_mousePos.y - s_lastMousePos.y;  // GLFW y-coordinates go from top to bottom
 
   s_mouseDelta.x += deltaX;  // += not =
   s_mouseDelta.y += deltaY;  // += not =

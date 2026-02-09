@@ -3,6 +3,9 @@
 #include "../component/transform.h"
 #include "../coordinator.h"
 #include "../ecs_constants.h"
+#include "../input.h"
+
+#include <glm/gtc/quaternion.hpp>
 
 extern Coordinator g_coordinator;
 
@@ -18,36 +21,55 @@ void CameraControlSystem::Update(float dt)
   {
     auto& transform = g_coordinator.GetComponent<Transform>(entity);
 
-    float speed = 20.0f;
+    float speed = 5.0f;
 
+    // Movement relative to camera orientation
     if (mButtons.test(static_cast<std::size_t>(InputButtons::W)))
     {
-      transform.position.z -= (dt * speed);
+      transform.position += transform.forward() * speed * dt;
     }
 
-    else if (mButtons.test(static_cast<std::size_t>(InputButtons::S)))
+    if (mButtons.test(static_cast<std::size_t>(InputButtons::S)))
     {
-      transform.position.z += (dt * speed);
-    }
-
-    if (mButtons.test(static_cast<std::size_t>(InputButtons::Q)))
-    {
-      transform.position.y += (dt * speed);
-    }
-
-    else if (mButtons.test(static_cast<std::size_t>(InputButtons::E)))
-    {
-      transform.position.y -= (dt * speed);
+      transform.position -= transform.forward() * speed * dt;
     }
 
     if (mButtons.test(static_cast<std::size_t>(InputButtons::A)))
     {
-      transform.position.x -= (dt * speed);
+      transform.position -= transform.right() * speed * dt;
     }
 
-    else if (mButtons.test(static_cast<std::size_t>(InputButtons::D)))
+    if (mButtons.test(static_cast<std::size_t>(InputButtons::D)))
     {
-      transform.position.x += (dt * speed);
+      transform.position += transform.right() * speed * dt;
+    }
+
+    if (mButtons.test(static_cast<std::size_t>(InputButtons::Q)))
+    {
+      transform.position += glm::vec3(0, 1, 0) * speed * dt;  // World up
+    }
+
+    if (mButtons.test(static_cast<std::size_t>(InputButtons::E)))
+    {
+      transform.position -= glm::vec3(0, 1, 0) * speed * dt;  // World down
+    }
+
+    // Mouse look
+    glm::vec2 mouseDelta = Input::getMouseDelta();
+    float sensitivity = 0.1f;
+
+    if (glm::length(mouseDelta) > 0.0f)
+    {
+      float yaw = mouseDelta.x * sensitivity;
+      float pitch = mouseDelta.y * sensitivity;
+
+      // Rotate around world up axis for yaw (applied to current rotation)
+      glm::quat yawRotation = glm::angleAxis(glm::radians(-yaw), glm::vec3(0, 1, 0));
+      transform.rotation = glm::normalize(yawRotation * transform.rotation);
+
+      // Rotate around the NEW camera's right axis for pitch
+      glm::quat pitchRotation = glm::angleAxis(glm::radians(-pitch), transform.right());
+      transform.rotation = glm::normalize(pitchRotation * transform.rotation);
     }
   }
 }
